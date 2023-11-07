@@ -17,6 +17,7 @@ public class MatrixSolver {
         }
     }
 
+
     public List<boolean[]> solve() {
         List<boolean[]> res = new LinkedList<>();
         for(int i = 0; i < matrix[i].length; i++) {
