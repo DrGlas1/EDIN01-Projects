@@ -5,9 +5,10 @@ import java.util.List;
 public class MatrixSolver {
     int n;
     int m;
+    int[] values;
     boolean[][] matrix;
     boolean[][] records;
-    public MatrixSolver(boolean[][] matrix) {
+    public MatrixSolver(boolean[][] matrix, int[] values) {
         this.matrix = matrix;
         this.n = matrix.length;
         this.m = matrix[0].length;
@@ -15,6 +16,7 @@ public class MatrixSolver {
         for(int i = 0; i < n; i++) {
             records[i][i] = true;
         }
+        this.values = values;
     }
 
 
@@ -36,10 +38,11 @@ public class MatrixSolver {
                 res.add(records[i]);
             }
         }
+
         return res;
     }
 
-    void switchRows(int i, int j) {
+    private void switchRows(int i, int j) {
         boolean[] temp = matrix[i];
         matrix[i] = matrix[j];
         matrix[j] = temp;
@@ -48,7 +51,7 @@ public class MatrixSolver {
         records[j] = temp;
     }
 
-    void reduce(int i) {
+    private void reduce(int i) {
         for(int j = i + 1; j < n; j++) {
             if (matrix[j][i]) {
                 addRow(i, j);
@@ -56,7 +59,7 @@ public class MatrixSolver {
         }
     }
 
-    void addRow(int i, int j) {
+    private void addRow(int i, int j) {
         for(int k = i; k < matrix[i].length; k++) {
             matrix[j][k] ^= matrix[i][k];
         }
@@ -65,7 +68,7 @@ public class MatrixSolver {
         }
     }
 
-    boolean validateRow(boolean[] row) {
+    private boolean validateRow(boolean[] row) {
         for(boolean val : row) {
             if (val){
                 return false;
@@ -74,19 +77,25 @@ public class MatrixSolver {
         return true;
     }
 
-    public boolean validSolution(boolean[] sol, boolean[][] og) {
-        boolean[] res = new boolean[m];
-        for(int i = 0; i < n; i++) {
-            if (sol[i]) {
-                addRowIntoRow(res, og[i]);
-            }
-        }
-        return validateRow(res);
-    }
-
-    void addRowIntoRow(boolean[] row1, boolean[] row2) {
+    public static void addRow(boolean[] row1, boolean[] row2) {
         for(int i = 0; i < row1.length; i++) {
             row1[i] ^= row2[i];
         }
+    }
+
+    public static boolean validSolution(boolean[][] matrix, boolean[] sol) {
+        boolean[] res = new boolean[matrix[0].length];
+        for(int i = 0; i < matrix.length; i++) {
+            if (sol[i]) {
+                addRow(res, matrix[i]);
+            }
+        }
+
+        for(boolean val : res) {
+            if (val){
+                return false;
+            }
+        }
+        return true;
     }
 }

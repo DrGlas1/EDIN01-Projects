@@ -15,11 +15,11 @@ class MatrixSolverTest {
                 {false, true},
         };
         boolean[][] matrix_copy = copyBooleanArray(matrix);
-        MatrixSolver solver = new MatrixSolver(matrix);
+        MatrixSolver solver = new MatrixSolver(matrix, null);
         List<boolean[]> solutions = solver.solve();
 
         for(boolean[] solution : solutions) {
-            assertTrue(solver.validSolution(solution, matrix_copy), "Given solution doesn't solve xA = 0");
+            assertTrue(MatrixSolver.validSolution(matrix_copy, solution), "Given solution doesn't solve xA = 0");
         }
     }
 
@@ -33,11 +33,11 @@ class MatrixSolverTest {
                 {false, false, true}
         };
         boolean[][] matrix_copy = copyBooleanArray(matrix);
-        MatrixSolver solver = new MatrixSolver(matrix);
+        MatrixSolver solver = new MatrixSolver(matrix, null);
         List<boolean[]> solutions = solver.solve();
 
         for(boolean[] solution : solutions) {
-            assertTrue(solver.validSolution(solution, matrix_copy), "Given solution doesn't solve xA = 0");
+            assertTrue(MatrixSolver.validSolution(matrix_copy, solution), "Given solution doesn't solve xA = 0");
         }
     }
 
@@ -58,36 +58,36 @@ class MatrixSolverTest {
                 {true, true, false, true, false, false, false, true, false, false},
         };
         boolean[][] matrix_copy = copyBooleanArray(matrix);
-        MatrixSolver solver = new MatrixSolver(matrix);
+        MatrixSolver solver = new MatrixSolver(matrix, null);
         List<boolean[]> solutions = solver.solve();
 
         for(boolean[] solution : solutions) {
-            assertTrue(solver.validSolution(solution, matrix_copy), "Given solution doesn't solve xA = 0");
+            assertTrue(MatrixSolver.validSolution(matrix_copy, solution), "Given solution doesn't solve xA = 0");
         }
     }
 
     @Test
     void testRandomMatrix() {
-        boolean[][] matrix = createBooleanMatrix(20, 10);
+        boolean[][] matrix = createRandomBooleanMatrix(20, 10);
         boolean[][] matrix_copy = copyBooleanArray(matrix);
-        MatrixSolver solver = new MatrixSolver(matrix);
+        MatrixSolver solver = new MatrixSolver(matrix, null);
         List<boolean[]> solutions = solver.solve();
 
         for(boolean[] solution : solutions) {
-            assertTrue(solver.validSolution(solution, matrix_copy), "Given solution doesn't solve xA = 0");
+            assertTrue(MatrixSolver.validSolution(matrix_copy, solution), "Given solution doesn't solve xA = 0");
         }
 
-        matrix = createBooleanMatrix(30, 10);
+        matrix = createRandomBooleanMatrix(30, 10);
         matrix_copy = copyBooleanArray(matrix);
-        solver = new MatrixSolver(matrix);
+        solver = new MatrixSolver(matrix, null);
         solutions = solver.solve();
 
         for(boolean[] solution : solutions) {
-            assertTrue(solver.validSolution(solution, matrix_copy), "Given solution doesn't solve xA = 0");
+            assertTrue(MatrixSolver.validSolution(matrix_copy, solution), "Given solution doesn't solve xA = 0");
         }
     }
 
-    boolean[][] createBooleanMatrix(int n, int m) {
+    boolean[][] createRandomBooleanMatrix(int n, int m) {
         boolean[][] matrix = new boolean[n][m];
         for(int i = 0; i < n; i++) {
             for(int j = 0; j < m; j++) {
