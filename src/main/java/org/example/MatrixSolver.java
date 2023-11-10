@@ -33,6 +33,7 @@ public class MatrixSolver {
             }
             reduce(i);
         }
+
         for(int i = 0; i < n; i++) {
             if (validateRow(matrix[i])) {
                 res.add(records[i]);
