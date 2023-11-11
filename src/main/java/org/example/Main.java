@@ -1,19 +1,11 @@
 package org.example;
 
-import java.util.List;
+import java.math.BigInteger;
 
 public class Main {
     public static void main(String[] args) {
-        QuadraticSieve sieve = new QuadraticSieve("./src/main/java/org/example/primes.txt", 16637);
-        MatrixSolver solver = sieve.generateMatrix();
-        List<boolean[]> matrix = solver.solve();
-        for(boolean[] row : matrix) {
-            for(boolean val : row) {
-                int p = val ? 1 : 0;
-                System.out.print(p + " ");
-            }
-            System.out.println();
-        }
+        QuadraticSieve sieve = new QuadraticSieve("./src/main/java/org/example/primes.txt", new BigInteger("392742364277"));
+        sieve.factor();
     }
 
     static void printRow(boolean[] row) {

@@ -3,25 +3,27 @@ package org.example;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
 public class QuadraticSieve {
-    int N;
+    BigInteger N;
     int L;
     int B;
     int F;
     int j = 1;
     int k = 1;
     boolean[] testFactor;
-    int[] values;
+    BigInteger[] values;
     boolean[][] factorMatrix;
     List<Integer> primes = new ArrayList<>();
 
-    public QuadraticSieve(String filepath, int N) {
+    public QuadraticSieve(String filepath, BigInteger N) {
         this.N = N;
-        this.L = 12;//(int)Math.round(Math.exp(Math.sqrt(Math.log(N) * Math.log(Math.log(N)))));
-        this.B = 30; //(int)Math.round(Math.pow(L, 1.0 / Math.sqrt(2)));
+        this.L = 1000;//(int)Math.round(Math.exp(Math.sqrt(Math.log(N) * Math.log(Math.log(N)))));
+        this.B = 500;//(int)Math.round(Math.pow(L, 1.0 / Math.sqrt(2)));
+        System.out.println(L + " " + B);
         try (BufferedReader br = new BufferedReader(new FileReader(filepath))) {
             String line;
             while ((line = br.readLine()) != null) {
@@ -40,24 +42,26 @@ public class QuadraticSieve {
         this.F = primes.size();
         this.testFactor = new boolean[F];
         this.factorMatrix = new boolean[L][F];
-        this.values = new int[L];
+        this.values = new BigInteger[L];
     }
 
-    public MatrixSolver generateMatrix() {
-        int solutions = 0;
-        while(solutions < L) {
-            int potentialFactor = generatePotentialFactor(solutions);
-            boolean f = bSmoothFactors(potentialFactor);
-            if (f && validSolution(solutions)) {
-                if (F >= 0) System.arraycopy(testFactor, 0, factorMatrix[solutions], 0, F);
-                solutions++;
+    public void factor() {
+        FactorPair pair = null;
+        while(pair == null) {
+            int solutions = 0;
+            while(solutions < L) {
+                BigInteger potentialFactor = generatePotentialFactor(solutions);
+                boolean f = bSmoothFactors(potentialFactor);
+                if (f && validSolution(solutions)) {
+                    if (F >= 0) System.arraycopy(testFactor, 0, factorMatrix[solutions], 0, F);
+                    solutions++;
+                }
+                cleanup();
             }
-            cleanup();
+            System.out.println("Solving new matrix");
+            pair = new MatrixSolver(factorMatrix, values, N).solve();
         }
-        for(int val : values) {
-            System.out.print(val + " ");
-        }
-        return new MatrixSolver(factorMatrix, values);
+        pair.print();
     }
 
     boolean validSolution(int solutions) {
@@ -74,24 +78,24 @@ public class QuadraticSieve {
         return true;
     }
 
-    boolean bSmoothFactors(int n) {
+    boolean bSmoothFactors(BigInteger n) {
         boolean nonTrivial = false;
         for(int i = 0; i < F; i++) {
             int prime = primes.get(i);
-            while(n % prime == 0) {
-                n /= prime;
+            while(n.mod(BigInteger.valueOf(prime)).equals(BigInteger.valueOf(0))) {
+                n = n.divide(BigInteger.valueOf(prime));
                 testFactor[i] = !testFactor[i];
             }
             nonTrivial |= testFactor[i];
         }
-        return n == 1 && nonTrivial;
+        return n.equals(BigInteger.valueOf(1)) && nonTrivial;
     }
 
-    int generatePotentialFactor(int solutions) {
-        int r = (int)Math.floor(Math.sqrt(k * N)) + j;
+    BigInteger generatePotentialFactor(int solutions) {
+        BigInteger r = N.multiply(BigInteger.valueOf(k)).sqrt().add(BigInteger.valueOf(j));
         values[solutions] = r;
         incrementJK();
-        return r * r % N;
+        return r.multiply(r).mod(N);
     }
 
     void cleanup() {

@@ -1,17 +1,23 @@
 package org.example;
-import java.util.LinkedList;
-import java.util.List;
+import java.math.BigInteger;
 
 public class MatrixSolver {
     int n;
     int m;
-    int[] values;
+    BigInteger N;
+    BigInteger[] values;
     boolean[][] matrix;
+    boolean[][] originalMatrix;
     boolean[][] records;
-    public MatrixSolver(boolean[][] matrix, int[] values) {
+    public MatrixSolver(boolean[][] matrix, BigInteger[] values, BigInteger N) {
         this.matrix = matrix;
         this.n = matrix.length;
         this.m = matrix[0].length;
+        this.N = N;
+        this.originalMatrix = new boolean[n][m];
+        for(int i = 0; i < matrix.length; i++) {
+            System.arraycopy(matrix[i],0, this.originalMatrix[i], 0, m);
+        }
         this.records = new boolean[n][n];
         for(int i = 0; i < n; i++) {
             records[i][i] = true;
@@ -20,11 +26,10 @@ public class MatrixSolver {
     }
 
 
-    public List<boolean[]> solve() {
-        List<boolean[]> res = new LinkedList<>();
+    public FactorPair solve() {
         for(int i = 0; i < matrix[i].length; i++) {
             if (!matrix[i][i]) {
-                for(int j = i + 1; j < n; j++) {
+                for (int j = i + 1; j < n; j++) {
                     if (matrix[j][i]) {
                         switchRows(i, j);
                         break;
@@ -36,11 +41,29 @@ public class MatrixSolver {
 
         for(int i = 0; i < n; i++) {
             if (validateRow(matrix[i])) {
-                res.add(records[i]);
+                BigInteger lhs = BigInteger.valueOf(1);
+                BigInteger rhs = BigInteger.valueOf(1);
+                for(int j = 0; j < n; j++) {
+                    if (records[i][j]) {
+                        lhs = lhs.multiply(values[j]);
+                        rhs = rhs.multiply(values[j].multiply(values[j]).mod(N));
+                    }
+                }
+                lhs = lhs.mod(N);
+                rhs = rhs.mod(N);
+                BigInteger factor = gcd(lhs.subtract(rhs),N);
+                if (factor.intValue() != 1) {
+                    return new FactorPair(factor, N.divide(factor));
+                }
+
             }
         }
+        return null;
+    }
 
-        return res;
+    BigInteger gcd(BigInteger a, BigInteger b) {
+        if (b.intValue() == 0) return a;
+        return gcd(b, a.mod(b));
     }
 
     private void switchRows(int i, int j) {
@@ -98,5 +121,18 @@ public class MatrixSolver {
             }
         }
         return true;
+    }
+}
+
+class FactorPair {
+    BigInteger factor1;
+    BigInteger factor2;
+    public  FactorPair(BigInteger f1, BigInteger f2) {
+        this.factor1 = f1;
+        this.factor2 = f2;
+    }
+
+    public void print() {
+        System.out.println(factor1 + " " + factor2);
     }
 }
