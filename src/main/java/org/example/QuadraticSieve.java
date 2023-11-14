@@ -13,11 +13,7 @@ public class QuadraticSieve {
     int L;
     BigInteger B;
     int F;
-    BigInteger j = BigInteger.valueOf(1);
-    BigInteger k = BigInteger.valueOf(1);
-    boolean[] testFactor;
-    BigInteger[] values;
-    boolean[][] factorMatrix;
+    volatile boolean done = false;
     List<BigInteger> primes = new ArrayList<>();
 
     public QuadraticSieve(String filepath, BigInteger N) {
@@ -41,23 +37,36 @@ public class QuadraticSieve {
             e.printStackTrace();
         }
         this.F = primes.size();
-        this.testFactor = new boolean[F];
-        this.factorMatrix = new boolean[L][F];
-        this.values = new BigInteger[L];
     }
 
-    public void factor() {
+    public void factor(long pos, long total) {
+        BigInteger val = pos == 0 ? new BigInteger("0") : BigInteger.valueOf(500 * pos);
+        BigInteger tot = BigInteger.valueOf(500 * total);
+        boolean[] testFactor = new boolean[F];
+        boolean[][] factorMatrix = new boolean[L][F];
+        BigInteger[] values = new BigInteger[L];
+        BigInteger j = BigInteger.valueOf(1).add(val);
+        BigInteger k = BigInteger.valueOf(1).add(val);
         FactorPair pair = null;
         while(pair == null) {
             long startTime = System.currentTimeMillis();
             int solutions = 0;
-            while(solutions < L) {
-                BigInteger potentialFactor = generatePotentialFactor(solutions);
+            while(solutions < L && !done) {
+                BigInteger potentialFactor = generatePotentialFactor(values, j, k, solutions);
+                if (k.compareTo(j) > 0) {
+                    j = j.add(BigInteger.ONE);
+                } else if (k.mod(val).equals(BigInteger.ZERO)) {
+                    k = k.add(tot).subtract(BigInteger.valueOf(500));
+                    j = BigInteger.valueOf(1);
+                } else {
+                    k = k.add(BigInteger.ONE);
+                    j = BigInteger.valueOf(1);
+                }
                 //long nstart = System.nanoTime();
-                boolean f = bSmoothFactors(potentialFactor);
+                boolean f = bSmoothFactors(testFactor, potentialFactor);
                 //long nmiddle = System.nanoTime();
                 //System.out.println("Time to check number: " + (nmiddle - nstart));
-                if (f && validSolution(solutions)) {
+                if (f && validSolution(testFactor, factorMatrix, solutions)) {
                     for(int i = 0; i < F; i++) {
                         factorMatrix[solutions][i] = testFactor[i];
                     }
@@ -73,10 +82,11 @@ public class QuadraticSieve {
             //System.out.println("Time to solve matrix: " + (totalTime - middleTime));
 
         }
+        done = true;
         pair.print();
     }
 
-    boolean validSolution(int solutions) {
+    boolean validSolution(boolean[] testFactor, boolean[][] factorMatrix, int solutions) {
         for(int i = 0; i < solutions; i++) {
             for(int j = 0; j < F; j++) {
                 if (testFactor[j] != factorMatrix[i][j]) {
@@ -90,7 +100,7 @@ public class QuadraticSieve {
         return true;
     }
 
-    boolean bSmoothFactors(BigInteger n) {
+    boolean bSmoothFactors(boolean[] testFactor, BigInteger n) {
         boolean nonTrivial = false;
         /// Nedan kod skulle kunna paraleliseras och sedan multipliceras ihop för att ta reda om talet är b smooth
         for(int i = 0; i < F; i++) { // F is the number of primes
@@ -124,20 +134,10 @@ public class QuadraticSieve {
         return true; // TODO
     }
 
-    BigInteger generatePotentialFactor(int solutions) {
+    BigInteger generatePotentialFactor(BigInteger[] values, BigInteger j, BigInteger k, int solutions) {
         BigInteger r = N.multiply(k).sqrt().add(j);
         values[solutions] = r;
-        incrementJK();
         return r.multiply(r).mod(N);
     }
 
-
-    void incrementJK() {
-        if (k.compareTo(j) > 0) {
-            j = j.add(BigInteger.ONE);
-        } else {
-            k = k.add(BigInteger.ONE);
-            j = BigInteger.valueOf(1);
-        }
-    }
 }
