@@ -40,13 +40,13 @@ public class QuadraticSieve {
     }
 
     public void factor(long pos, long total) {
-        BigInteger val = pos == 0 ? new BigInteger("0") : BigInteger.valueOf(500 * pos);
+        BigInteger val = BigInteger.valueOf(500);
         BigInteger tot = BigInteger.valueOf(500 * total);
         boolean[] testFactor = new boolean[F];
         boolean[][] factorMatrix = new boolean[L][F];
         BigInteger[] values = new BigInteger[L];
-        BigInteger j = BigInteger.valueOf(1).add(val);
-        BigInteger k = BigInteger.valueOf(1).add(val);
+        BigInteger j = BigInteger.valueOf(1).add(val.multiply(BigInteger.valueOf(pos)));
+        BigInteger k = j;
         FactorPair pair = null;
         while(pair == null) {
             long startTime = System.currentTimeMillis();
