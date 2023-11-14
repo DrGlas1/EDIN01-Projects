@@ -76,8 +76,8 @@ public class MatrixSolver {
     }
 
     private void reduce(int i) {
-        for(int j = i + 1; j < n; j++) {
-            if (matrix[j][i]) {
+        for(int j = 0; j < n; j++) {
+            if (i != j && matrix[j][i]) {
                 addRow(i, j);
             }
         }

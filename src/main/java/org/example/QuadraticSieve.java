@@ -6,31 +6,32 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ForkJoinPool;
 
 public class QuadraticSieve {
     BigInteger N;
     int L;
-    int B;
+    BigInteger B;
     int F;
-    int j = 1;
-    int k = 1;
+    BigInteger j = BigInteger.valueOf(1);
+    BigInteger k = BigInteger.valueOf(1);
     boolean[] testFactor;
     BigInteger[] values;
     boolean[][] factorMatrix;
-    List<Integer> primes = new ArrayList<>();
+    List<BigInteger> primes = new ArrayList<>();
 
     public QuadraticSieve(String filepath, BigInteger N) {
         this.N = N;
-        this.L = 1000;//(int)Math.round(Math.exp(Math.sqrt(Math.log(N) * Math.log(Math.log(N)))));
-        this.B = 500;//(int)Math.round(Math.pow(L, 1.0 / Math.sqrt(2)));
+        this.L = 2000;//(int)Math.round(Math.exp(Math.sqrt(Math.log(N) * Math.log(Math.log(N)))));
+        this.B = BigInteger.valueOf(1500);//(int)Math.round(Math.pow(L, 1.0 / Math.sqrt(2)));
         System.out.println(L + " " + B);
         try (BufferedReader br = new BufferedReader(new FileReader(filepath))) {
             String line;
             while ((line = br.readLine()) != null) {
                 String[] primeStrings = line.split(",");
                 for (String primeStr : primeStrings){
-                    int prime = Integer.parseInt(primeStr);
-                    if (prime >= B) {
+                    var prime = new BigInteger(primeStr);
+                    if (prime.compareTo(B) >= 0) {
                         break;
                     }
                     primes.add(prime);
@@ -48,18 +49,29 @@ public class QuadraticSieve {
     public void factor() {
         FactorPair pair = null;
         while(pair == null) {
+            long startTime = System.currentTimeMillis();
             int solutions = 0;
             while(solutions < L) {
                 BigInteger potentialFactor = generatePotentialFactor(solutions);
+                //long nstart = System.nanoTime();
                 boolean f = bSmoothFactors(potentialFactor);
+                //long nmiddle = System.nanoTime();
+                //System.out.println("Time to check number: " + (nmiddle - nstart));
                 if (f && validSolution(solutions)) {
-                    if (F >= 0) System.arraycopy(testFactor, 0, factorMatrix[solutions], 0, F);
+                    for(int i = 0; i < F; i++) {
+                        factorMatrix[solutions][i] = testFactor[i];
+                    }
                     solutions++;
                 }
-                cleanup();
+                //long nend = System.nanoTime();
+                //System.out.println("Time to validate and insert row: " + (nend - nmiddle));
             }
-            System.out.println("Solving new matrix");
+            long middleTime = System.currentTimeMillis();
+            System.out.println("Time to create matrix: " + (middleTime - startTime));
             pair = new MatrixSolver(factorMatrix, values, N).solve();
+            //long totalTime = System.currentTimeMillis();
+            //System.out.println("Time to solve matrix: " + (totalTime - middleTime));
+
         }
         pair.print();
     }
@@ -80,36 +92,52 @@ public class QuadraticSieve {
 
     boolean bSmoothFactors(BigInteger n) {
         boolean nonTrivial = false;
-        for(int i = 0; i < F; i++) {
-            int prime = primes.get(i);
-            while(n.mod(BigInteger.valueOf(prime)).equals(BigInteger.valueOf(0))) {
-                n = n.divide(BigInteger.valueOf(prime));
+        /// Nedan kod skulle kunna paraleliseras och sedan multipliceras ihop för att ta reda om talet är b smooth
+        for(int i = 0; i < F; i++) { // F is the number of primes
+            testFactor[i] = false;
+            BigInteger prime = primes.get(i);
+            while(n.mod(prime).equals(BigInteger.ZERO)) {
+                n = n.divide(prime);
                 testFactor[i] = !testFactor[i];
             }
             nonTrivial |= testFactor[i];
         }
-        return n.equals(BigInteger.valueOf(1)) && nonTrivial;
+        return n.equals(BigInteger.ONE) && nonTrivial;
+    }
+
+    boolean bSmoothFactors2(BigInteger n) {
+        boolean[] testFactor = new boolean[F];
+        ForkJoinPool.commonPool()
+                .submit(() ->
+                        primes.parallelStream()
+                                .map(prime -> {
+                                    int index = primes.indexOf(prime);
+                                    BigInteger m = n;
+                                    while (m.mod(prime).equals(BigInteger.valueOf(0))) {
+                                        m = m.divide(prime);
+                                        testFactor[index] = !testFactor[index];
+                                    }
+                                    return testFactor[index];
+                                })
+                ).join();
+
+        return true; // TODO
     }
 
     BigInteger generatePotentialFactor(int solutions) {
-        BigInteger r = N.multiply(BigInteger.valueOf(k)).sqrt().add(BigInteger.valueOf(j));
+        BigInteger r = N.multiply(k).sqrt().add(j);
         values[solutions] = r;
         incrementJK();
         return r.multiply(r).mod(N);
     }
 
-    void cleanup() {
-        for(int i = 0; i < F; i++) {
-            testFactor[i] = false;
-        }
-    }
 
     void incrementJK() {
-        if (j < k) {
-            j++;
+        if (k.compareTo(j) > 0) {
+            j = j.add(BigInteger.ONE);
         } else {
-            k++;
-            j = 1;
+            k = k.add(BigInteger.ONE);
+            j = BigInteger.valueOf(1);
         }
     }
 }
