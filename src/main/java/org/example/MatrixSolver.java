@@ -1,5 +1,10 @@
 package org.example;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MatrixSolver {
     int n;
@@ -38,25 +43,46 @@ public class MatrixSolver {
             }
             reduce(i);
         }
-
+        List<Integer> indexOfSolutions = new ArrayList<>();
         for(int i = 0; i < n; i++) {
             if (validateRow(matrix[i])) {
-                BigInteger lhs = BigInteger.valueOf(1);
-                BigInteger rhs = BigInteger.valueOf(1);
-                for(int j = 0; j < n; j++) {
-                    if (records[i][j]) {
-                        lhs = lhs.multiply(values[j]);
-                        rhs = rhs.multiply(values[j].multiply(values[j]).mod(N));
-                    }
-                }
-                lhs = lhs.mod(N);
-                rhs = rhs.mod(N);
-                BigInteger factor = gcd(lhs.subtract(rhs),N);
-                if (factor.intValue() != 1) {
-                    return new FactorPair(factor, N.divide(factor));
-                }
+                indexOfSolutions.add(i);
 
             }
+        }
+        for(int i = 0; i < indexOfSolutions.size(); i++) {
+            BigInteger lhs = BigInteger.valueOf(1);
+            BigInteger rhs = BigInteger.valueOf(1);
+            for(int j = 0; j < n; j++) {
+                if (records[indexOfSolutions.get(i)][j]) {
+                    lhs = lhs.multiply(values[j]);
+                    rhs = rhs.multiply(values[j].multiply(values[j]).mod(N));
+                }
+            }
+            FactorPair factor = getFactorPair(lhs, rhs);
+            if (factor != null) return factor;
+            for(int j = i + 1; j < indexOfSolutions.size(); j++) {
+                lhs = BigInteger.valueOf(1);
+                rhs = BigInteger.valueOf(1);
+                for(int k = 0; k < n; k++) {
+                    if (records[indexOfSolutions.get(i)][k] ^ records[indexOfSolutions.get(j)][k]) {
+                        lhs = lhs.multiply(values[k]);
+                        rhs = rhs.multiply(values[k].multiply(values[k]).mod(N));
+                    }
+                }
+                factor = getFactorPair(lhs, rhs);
+                if (factor != null) return factor;
+            }
+        }
+        return null;
+    }
+
+    private FactorPair getFactorPair(BigInteger lhs, BigInteger rhs) {
+        lhs = lhs.mod(N);
+        rhs = rhs.mod(N);
+        BigInteger factor = gcd(lhs.subtract(rhs),N);
+        if (factor.intValue() != 1) {
+            return new FactorPair(factor, N.divide(factor));
         }
         return null;
     }
@@ -101,26 +127,28 @@ public class MatrixSolver {
         return true;
     }
 
-    public static void addRow(boolean[] row1, boolean[] row2) {
-        for(int i = 0; i < row1.length; i++) {
-            row1[i] ^= row2[i];
+    public void exportMatrixToFile(boolean[][] matrix) {
+        try {
+            BufferedWriter writer = new BufferedWriter(new FileWriter("./src/main/java/org/example/matrix.txt"));
+            writer.write(matrix.length + " " + matrix[0].length);
+            writer.newLine();
+
+            for (int i = 0; i < matrix.length; i++) {
+                for (int j = 0; j < matrix[i].length; j++) {
+                    var nbr = matrix[i][j] ? 1 : 0;
+                    writer.write(nbr + " ");
+                }
+                writer.newLine();
+            }
+
+            writer.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
-    public static boolean validSolution(boolean[][] matrix, boolean[] sol) {
-        boolean[] res = new boolean[matrix[0].length];
-        for(int i = 0; i < matrix.length; i++) {
-            if (sol[i]) {
-                addRow(res, matrix[i]);
-            }
-        }
-
-        for(boolean val : res) {
-            if (val){
-                return false;
-            }
-        }
-        return true;
+    public void solveFile() throws IOException {
+        Runtime.getRuntime().exec("./src/main/java/org/example/a.out ./src/main/java/org/example/matrix.txt ./src/main/java/org/example/solutions.txt");
     }
 }
 

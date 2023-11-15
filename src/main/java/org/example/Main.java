@@ -4,8 +4,15 @@ import java.math.BigInteger;
 
 public class Main {
     public static void main(String[] args) {
-        QuadraticSieve sieve = new QuadraticSieve("./src/main/java/org/example/primes.txt", new BigInteger("392742364277"));
-        sieve.factor(0, 5);
+        QuadraticSieve sieve = new QuadraticSieve("./src/main/java/org/example/primes.txt", new BigInteger("226656049059568622200349"));
+        int TOTAL = 1;
+        for(int i = 0; i < TOTAL; i++) {
+            int finalI = i;
+            new Thread(() -> {
+                sieve.factor(finalI+1, TOTAL);
+                System.out.println("Thread " + finalI + " has finished");
+            }).start();
+        }
     }
 
     static void printRow(boolean[] row) {

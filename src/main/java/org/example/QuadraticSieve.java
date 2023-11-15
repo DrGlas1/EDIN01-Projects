@@ -4,8 +4,7 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ForkJoinPool;
 
 public class QuadraticSieve {
@@ -18,8 +17,8 @@ public class QuadraticSieve {
 
     public QuadraticSieve(String filepath, BigInteger N) {
         this.N = N;
-        this.L = 2000;//(int)Math.round(Math.exp(Math.sqrt(Math.log(N) * Math.log(Math.log(N)))));
-        this.B = BigInteger.valueOf(1500);//(int)Math.round(Math.pow(L, 1.0 / Math.sqrt(2)));
+        this.L = 2000;
+        this.B = BigInteger.valueOf(50000);
         System.out.println(L + " " + B);
         try (BufferedReader br = new BufferedReader(new FileReader(filepath))) {
             String line;
@@ -40,46 +39,60 @@ public class QuadraticSieve {
     }
 
     public void factor(long pos, long total) {
-        BigInteger val = BigInteger.valueOf(500);
-        BigInteger tot = BigInteger.valueOf(500 * total);
+        BigInteger t = BigInteger.valueOf(total);
         boolean[] testFactor = new boolean[F];
         boolean[][] factorMatrix = new boolean[L][F];
+        Set<String> existingFactors = new HashSet<>();
         BigInteger[] values = new BigInteger[L];
-        BigInteger j = BigInteger.valueOf(1).add(val.multiply(BigInteger.valueOf(pos)));
-        BigInteger k = j;
+        BigInteger j = BigInteger.ONE;
+        BigInteger k = BigInteger.valueOf(pos);
         FactorPair pair = null;
-        while(pair == null) {
+        while(pair == null && !done) {
             long startTime = System.currentTimeMillis();
             int solutions = 0;
-            while(solutions < L && !done) {
+            int p = 0;
+            while(solutions < L) {
                 BigInteger potentialFactor = generatePotentialFactor(values, j, k, solutions);
                 if (k.compareTo(j) > 0) {
                     j = j.add(BigInteger.ONE);
-                } else if (k.mod(val).equals(BigInteger.ZERO)) {
-                    k = k.add(tot).subtract(BigInteger.valueOf(500));
-                    j = BigInteger.valueOf(1);
                 } else {
-                    k = k.add(BigInteger.ONE);
-                    j = BigInteger.valueOf(1);
+                    k = k.add(t);
+                    j = BigInteger.ONE;
                 }
+                //System.out.println("k: " + k + " j: " + j);
                 //long nstart = System.nanoTime();
                 boolean f = bSmoothFactors(testFactor, potentialFactor);
                 //long nmiddle = System.nanoTime();
                 //System.out.println("Time to check number: " + (nmiddle - nstart));
+                //System.out.println(Arrays.toString(testFactor));
+
                 if (f && validSolution(testFactor, factorMatrix, solutions)) {
+                    System.out.println("Rejected numbers: " + p);
+                    p = 0;
                     for(int i = 0; i < F; i++) {
                         factorMatrix[solutions][i] = testFactor[i];
                     }
                     solutions++;
+                } else {
+                    p++;
                 }
                 //long nend = System.nanoTime();
                 //System.out.println("Time to validate and insert row: " + (nend - nmiddle));
             }
             long middleTime = System.currentTimeMillis();
             System.out.println("Time to create matrix: " + (middleTime - startTime));
+//            try {
+//                var solver = new MatrixSolver(factorMatrix, values, N);
+//                solver.exportMatrixToFile(factorMatrix);
+//                solver.solveFile();
+//                solver.solve();
+//            } catch (Exception e) {
+//                System.out.println(e);
+//            }
+//            pair = new FactorPair(BigInteger.ONE, BigInteger.ONE);
             pair = new MatrixSolver(factorMatrix, values, N).solve();
-            //long totalTime = System.currentTimeMillis();
-            //System.out.println("Time to solve matrix: " + (totalTime - middleTime));
+            long totalTime = System.currentTimeMillis();
+            System.out.println("Time to solve matrix: " + (totalTime - middleTime));
 
         }
         done = true;
