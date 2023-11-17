@@ -5,7 +5,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.*;
-import java.util.concurrent.ForkJoinPool;
 
 public class QuadraticSieve {
     BigInteger N;
@@ -67,7 +66,7 @@ public class QuadraticSieve {
                 //System.out.println(Arrays.toString(testFactor));
 
                 if (f && validSolution(testFactor, factorMatrix, solutions)) {
-                    System.out.println("Rejected numbers: " + p);
+                    //System.out.println("Rejected numbers: " + p);
                     p = 0;
                     for(int i = 0; i < F; i++) {
                         factorMatrix[solutions][i] = testFactor[i];
@@ -126,25 +125,6 @@ public class QuadraticSieve {
             nonTrivial |= testFactor[i];
         }
         return n.equals(BigInteger.ONE) && nonTrivial;
-    }
-
-    boolean bSmoothFactors2(BigInteger n) {
-        boolean[] testFactor = new boolean[F];
-        ForkJoinPool.commonPool()
-                .submit(() ->
-                        primes.parallelStream()
-                                .map(prime -> {
-                                    int index = primes.indexOf(prime);
-                                    BigInteger m = n;
-                                    while (m.mod(prime).equals(BigInteger.valueOf(0))) {
-                                        m = m.divide(prime);
-                                        testFactor[index] = !testFactor[index];
-                                    }
-                                    return testFactor[index];
-                                })
-                ).join();
-
-        return true; // TODO
     }
 
     BigInteger generatePotentialFactor(BigInteger[] values, BigInteger j, BigInteger k, int solutions) {

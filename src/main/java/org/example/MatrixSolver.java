@@ -32,7 +32,7 @@ public class MatrixSolver {
 
 
     public FactorPair solve() {
-        for(int i = 0; i < matrix[i].length; i++) {
+        for(int i = 0; i < matrix.length && i < matrix[0].length; i++) {
             if (!matrix[i][i]) {
                 for (int j = i + 1; j < n; j++) {
                     if (matrix[j][i]) {
@@ -81,14 +81,14 @@ public class MatrixSolver {
         lhs = lhs.mod(N);
         rhs = rhs.mod(N);
         BigInteger factor = gcd(lhs.subtract(rhs),N);
-        if (factor.intValue() != 1) {
+        if (factor.compareTo(BigInteger.ONE) != 0) {
             return new FactorPair(factor, N.divide(factor));
         }
         return null;
     }
 
     BigInteger gcd(BigInteger a, BigInteger b) {
-        if (b.intValue() == 0) return a;
+        if (b.compareTo(BigInteger.ZERO) == 0) return a;
         return gcd(b, a.mod(b));
     }
 
