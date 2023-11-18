@@ -16,8 +16,8 @@ public class QuadraticSieve {
 
     public QuadraticSieve(String filepath, BigInteger N) {
         this.N = N;
-        this.L = 2000;
-        this.B = BigInteger.valueOf(50000);
+        this.L = 60;
+        this.B = BigInteger.valueOf(50);
         System.out.println(L + " " + B);
         try (BufferedReader br = new BufferedReader(new FileReader(filepath))) {
             String line;
@@ -80,16 +80,15 @@ public class QuadraticSieve {
             }
             long middleTime = System.currentTimeMillis();
             System.out.println("Time to create matrix: " + (middleTime - startTime));
-//            try {
-//                var solver = new MatrixSolver(factorMatrix, values, N);
-//                solver.exportMatrixToFile(factorMatrix);
-//                solver.solveFile();
-//                solver.solve();
-//            } catch (Exception e) {
-//                System.out.println(e);
-//            }
-//            pair = new FactorPair(BigInteger.ONE, BigInteger.ONE);
-            pair = new MatrixSolver(factorMatrix, values, N).solve();
+            try {
+                var solver = new MatrixSolver(factorMatrix, values, N);
+                solver.exportMatrixToFile(factorMatrix);
+                var possibleSolutions = solver.solveFile();
+                pair = solver.findFactorPairFromSolution(possibleSolutions);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            //pair = new MatrixSolver(factorMatrix, values, N).solve();
             long totalTime = System.currentTimeMillis();
             System.out.println("Time to solve matrix: " + (totalTime - middleTime));
 

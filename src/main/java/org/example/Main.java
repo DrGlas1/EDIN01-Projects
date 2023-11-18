@@ -4,7 +4,7 @@ import java.math.BigInteger;
 
 public class Main {
     public static void main(String[] args) {
-        QuadraticSieve sieve = new QuadraticSieve("./src/main/java/org/example/primes.txt", new BigInteger("226656049059568622200349"));
+        QuadraticSieve sieve = new QuadraticSieve("./src/main/java/org/example/primes.txt", new BigInteger("3205837387"));
         int TOTAL = 1;
         for(int i = 0; i < TOTAL; i++) {
             int finalI = i;

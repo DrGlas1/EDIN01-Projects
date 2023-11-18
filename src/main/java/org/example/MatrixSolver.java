@@ -1,7 +1,5 @@
 package org.example;
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
@@ -129,13 +127,15 @@ public class MatrixSolver {
 
     public void exportMatrixToFile(boolean[][] matrix) {
         try {
-            BufferedWriter writer = new BufferedWriter(new FileWriter("./src/main/java/org/example/matrix.txt"));
+            var filePath = "./src/main/java/org/example/matrix.txt";
+            clearFile(filePath);
+            BufferedWriter writer = new BufferedWriter(new FileWriter(filePath));
             writer.write(matrix.length + " " + matrix[0].length);
             writer.newLine();
 
-            for (int i = 0; i < matrix.length; i++) {
-                for (int j = 0; j < matrix[i].length; j++) {
-                    var nbr = matrix[i][j] ? 1 : 0;
+            for (boolean[] booleans : matrix) {
+                for (boolean aBoolean : booleans) {
+                    var nbr = aBoolean ? 1 : 0;
                     writer.write(nbr + " ");
                 }
                 writer.newLine();
@@ -147,8 +147,78 @@ public class MatrixSolver {
         }
     }
 
-    public void solveFile() throws IOException {
-        Runtime.getRuntime().exec("./src/main/java/org/example/a.out ./src/main/java/org/example/matrix.txt ./src/main/java/org/example/solutions.txt");
+
+    /**
+     * Solve the matrix defined in "matrix.txt", returns a list of all solutions
+     */
+    public boolean[][] solveFile() throws IOException {
+        Runtime.getRuntime().exec("./src/main/java/org/example/a.out ./src/main/java/org/example/matrix.txt ./src/main/java/org/example/solutions2.txt");
+        return readSolutionFromFile();
+
+    }
+
+    /**
+     * Reads the solution from the solutions2.txt and then clears it
+     * @return the resulting matrix
+     */
+    private boolean[][] readSolutionFromFile() {
+        var filePath = "./src/main/java/org/example/solutions2.txt";
+        try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
+            // Read the number of rows from the first line
+            int numRows = Integer.parseInt(br.readLine().trim());
+
+            // Initialize the boolean matrix
+            boolean[][] matrix = new boolean[numRows][];
+
+            // Read each row and convert it to a boolean array
+            for (int i = 0; i < numRows; i++) {
+                try {
+                    String line = br.readLine();
+                    //System.out.println("line: " + line);
+                    String[] rowValues = line.trim().split(" ");
+                    matrix[i] = new boolean[rowValues.length];
+                    for (int j = 0; j < rowValues.length; j++) {
+                        matrix[i][j] = rowValues[j].equals("1");
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            br.close();
+            clearFile(filePath);
+            return matrix;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    /**
+     * Clear a file
+     * @param filePath the path to the file
+     */
+    private void clearFile(String filePath) {
+        try (FileWriter writer = new FileWriter(filePath)) {
+            writer.write(""); // Writing an empty string to clear the file
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public FactorPair findFactorPairFromSolution(boolean[][] possibleSolutions) {
+        for (boolean[] possibleSolution : possibleSolutions) {
+            BigInteger lhs = BigInteger.ONE;
+            BigInteger rhs = BigInteger.ONE;
+            for (int j = 0; j < n; j++) {
+                if (possibleSolution[j]) {
+                    lhs = lhs.multiply(values[j]);
+                    rhs = rhs.multiply(values[j].multiply(values[j]).mod(N));
+                }
+            }
+            FactorPair factor = getFactorPair(lhs, rhs);
+            if (factor != null) return factor;
+        }
+        return null;
     }
 }
 
