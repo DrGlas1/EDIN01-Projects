@@ -1,8 +1,5 @@
 package org.example;
-import java.io.*;
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.List;
 
 public class MatrixSolver {
     int n;
@@ -30,7 +27,7 @@ public class MatrixSolver {
 
 
     public FactorPair solve() {
-        for(int i = 0; i < matrix.length && i < matrix[0].length; i++) {
+        for(int i = 0; i < matrix[i].length; i++) {
             if (!matrix[i][i]) {
                 for (int j = i + 1; j < n; j++) {
                     if (matrix[j][i]) {
@@ -41,52 +38,31 @@ public class MatrixSolver {
             }
             reduce(i);
         }
-        List<Integer> indexOfSolutions = new ArrayList<>();
+
         for(int i = 0; i < n; i++) {
             if (validateRow(matrix[i])) {
-                indexOfSolutions.add(i);
-
-            }
-        }
-        for(int i = 0; i < indexOfSolutions.size(); i++) {
-            BigInteger lhs = BigInteger.valueOf(1);
-            BigInteger rhs = BigInteger.valueOf(1);
-            for(int j = 0; j < n; j++) {
-                if (records[indexOfSolutions.get(i)][j]) {
-                    lhs = lhs.multiply(values[j]);
-                    rhs = rhs.multiply(values[j].multiply(values[j]).mod(N));
-                }
-            }
-            FactorPair factor = getFactorPair(lhs, rhs);
-            if (factor != null) return factor;
-            for(int j = i + 1; j < indexOfSolutions.size(); j++) {
-                lhs = BigInteger.valueOf(1);
-                rhs = BigInteger.valueOf(1);
-                for(int k = 0; k < n; k++) {
-                    if (records[indexOfSolutions.get(i)][k] ^ records[indexOfSolutions.get(j)][k]) {
-                        lhs = lhs.multiply(values[k]);
-                        rhs = rhs.multiply(values[k].multiply(values[k]).mod(N));
+                BigInteger lhs = BigInteger.valueOf(1);
+                BigInteger rhs = BigInteger.valueOf(1);
+                for(int j = 0; j < n; j++) {
+                    if (records[i][j]) {
+                        lhs = lhs.multiply(values[j]);
+                        rhs = rhs.multiply(values[j].multiply(values[j]).mod(N));
                     }
                 }
-                factor = getFactorPair(lhs, rhs);
-                if (factor != null) return factor;
-            }
-        }
-        return null;
-    }
+                lhs = lhs.mod(N);
+                rhs = rhs.mod(N);
+                BigInteger factor = gcd(lhs.subtract(rhs),N);
+                if (factor.intValue() != 1) {
+                    return new FactorPair(factor, N.divide(factor));
+                }
 
-    private FactorPair getFactorPair(BigInteger lhs, BigInteger rhs) {
-        lhs = lhs.mod(N);
-        rhs = rhs.mod(N);
-        BigInteger factor = gcd(lhs.subtract(rhs),N);
-        if (factor.compareTo(BigInteger.ONE) != 0) {
-            return new FactorPair(factor, N.divide(factor));
+            }
         }
         return null;
     }
 
     BigInteger gcd(BigInteger a, BigInteger b) {
-        if (b.compareTo(BigInteger.ZERO) == 0) return a;
+        if (b.intValue() == 0) return a;
         return gcd(b, a.mod(b));
     }
 
@@ -125,100 +101,26 @@ public class MatrixSolver {
         return true;
     }
 
-    public void exportMatrixToFile(boolean[][] matrix) {
-        try {
-            var filePath = "./src/main/java/org/example/matrix.txt";
-            clearFile(filePath);
-            BufferedWriter writer = new BufferedWriter(new FileWriter(filePath));
-            writer.write(matrix.length + " " + matrix[0].length);
-            writer.newLine();
+    public static void addRow(boolean[] row1, boolean[] row2) {
+        for(int i = 0; i < row1.length; i++) {
+            row1[i] ^= row2[i];
+        }
+    }
 
-            for (boolean[] booleans : matrix) {
-                for (boolean aBoolean : booleans) {
-                    var nbr = aBoolean ? 1 : 0;
-                    writer.write(nbr + " ");
-                }
-                writer.newLine();
+    public static boolean validSolution(boolean[][] matrix, boolean[] sol) {
+        boolean[] res = new boolean[matrix[0].length];
+        for(int i = 0; i < matrix.length; i++) {
+            if (sol[i]) {
+                addRow(res, matrix[i]);
             }
-
-            writer.close();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
         }
-    }
 
-
-    /**
-     * Solve the matrix defined in "matrix.txt", returns a list of all solutions
-     */
-    public boolean[][] solveFile() throws IOException {
-        Runtime.getRuntime().exec("./src/main/java/org/example/a.out ./src/main/java/org/example/matrix.txt ./src/main/java/org/example/solutions2.txt");
-        return readSolutionFromFile();
-
-    }
-
-    /**
-     * Reads the solution from the solutions2.txt and then clears it
-     * @return the resulting matrix
-     */
-    private boolean[][] readSolutionFromFile() {
-        var filePath = "./src/main/java/org/example/solutions2.txt";
-        try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
-            // Read the number of rows from the first line
-            int numRows = Integer.parseInt(br.readLine().trim());
-
-            // Initialize the boolean matrix
-            boolean[][] matrix = new boolean[numRows][];
-
-            // Read each row and convert it to a boolean array
-            for (int i = 0; i < numRows; i++) {
-                try {
-                    String line = br.readLine();
-                    //System.out.println("line: " + line);
-                    String[] rowValues = line.trim().split(" ");
-                    matrix[i] = new boolean[rowValues.length];
-                    for (int j = 0; j < rowValues.length; j++) {
-                        matrix[i][j] = rowValues[j].equals("1");
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+        for(boolean val : res) {
+            if (val){
+                return false;
             }
-            br.close();
-            clearFile(filePath);
-            return matrix;
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
         }
-    }
-
-    /**
-     * Clear a file
-     * @param filePath the path to the file
-     */
-    private void clearFile(String filePath) {
-        try (FileWriter writer = new FileWriter(filePath)) {
-            writer.write(""); // Writing an empty string to clear the file
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public FactorPair findFactorPairFromSolution(boolean[][] possibleSolutions) {
-        for (boolean[] possibleSolution : possibleSolutions) {
-            BigInteger lhs = BigInteger.ONE;
-            BigInteger rhs = BigInteger.ONE;
-            for (int j = 0; j < n; j++) {
-                if (possibleSolution[j]) {
-                    lhs = lhs.multiply(values[j]);
-                    rhs = rhs.multiply(values[j].multiply(values[j]).mod(N));
-                }
-            }
-            FactorPair factor = getFactorPair(lhs, rhs);
-            if (factor != null) return factor;
-        }
-        return null;
+        return true;
     }
 }
 
