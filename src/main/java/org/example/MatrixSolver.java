@@ -3,29 +3,27 @@ import java.io.*;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 
 public class MatrixSolver {
     int n;
     int m;
+    int numberOfPrimes;
     BigInteger N;
     BigInteger[] values;
     boolean[][] matrix;
-    boolean[][] originalMatrix;
     boolean[][] records;
-    public MatrixSolver(boolean[][] matrix, BigInteger[] values, BigInteger N) {
+    public MatrixSolver(boolean[][] matrix, BigInteger[] values, BigInteger N, int numberOfPrimes) {
         this.matrix = matrix;
         this.n = matrix.length;
         this.m = matrix[0].length;
         this.N = N;
-        this.originalMatrix = new boolean[n][m];
-        for(int i = 0; i < matrix.length; i++) {
-            System.arraycopy(matrix[i],0, this.originalMatrix[i], 0, m);
-        }
         this.records = new boolean[n][n];
         for(int i = 0; i < n; i++) {
             records[i][i] = true;
         }
         this.values = values;
+        this.numberOfPrimes = numberOfPrimes;
     }
 
 
@@ -151,9 +149,44 @@ public class MatrixSolver {
     /**
      * Solve the matrix defined in "matrix.txt", returns a list of all solutions
      */
-    public boolean[][] solveFile() throws IOException {
-        Runtime.getRuntime().exec("./src/main/java/org/example/a.out ./src/main/java/org/example/matrix.txt ./src/main/java/org/example/solutions2.txt");
-        return readSolutionFromFile();
+    public boolean[][] solveFile() throws IOException, InterruptedException {
+        clearFile("./src/main/java/org/example/solutions2.txt");
+        Runtime.getRuntime().exec("./src/main/java/org/example/a.out ./src/main/java/org/example/matrix.txt ./src/main/java/org/example/solutions2.txt").waitFor();
+        //Thread.sleep(5000);
+        return readSolutionFromFile2();
+
+    }
+
+    private boolean[][] readSolutionFromFile2() throws FileNotFoundException {
+        var filePath = "./src/main/java/org/example/solutions2.txt";
+        var file = new File(filePath);
+        var reader = new Scanner(file);
+
+        int numRows = reader.nextInt();
+        reader.nextLine();
+
+        boolean[][] solutionMatrix = new boolean[numRows][values.length];
+
+        int i = 0;
+        while (reader.hasNextLine()) {
+            try {
+                //System.out.println(i);
+                String line = reader.nextLine();
+                //System.out.println("line: " + line);
+                String[] rowValues = line.trim().split(" ");
+                for (int j = 0; j < rowValues.length; j++) {
+                    solutionMatrix[i][j] = rowValues[j].equals("1");
+                }
+            } catch (Exception e) {
+                System.out.println("error at i:" + i);
+                e.printStackTrace();
+            }
+            i++;
+        }
+
+        reader.close();
+
+        return solutionMatrix;
 
     }
 

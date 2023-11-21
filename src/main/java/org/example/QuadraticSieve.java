@@ -16,8 +16,8 @@ public class QuadraticSieve {
 
     public QuadraticSieve(String filepath, BigInteger N) {
         this.N = N;
-        this.L = 60;
-        this.B = BigInteger.valueOf(50);
+        this.L = 1024;
+        this.B = BigInteger.valueOf(1014);
         System.out.println(L + " " + B);
         try (BufferedReader br = new BufferedReader(new FileReader(filepath))) {
             String line;
@@ -37,14 +37,12 @@ public class QuadraticSieve {
         this.F = primes.size();
     }
 
-    public void factor(long pos, long total) {
-        BigInteger t = BigInteger.valueOf(total);
+    public void factor() {
         boolean[] testFactor = new boolean[F];
         boolean[][] factorMatrix = new boolean[L][F];
-        Set<String> existingFactors = new HashSet<>();
         BigInteger[] values = new BigInteger[L];
         BigInteger j = BigInteger.ONE;
-        BigInteger k = BigInteger.valueOf(pos);
+        BigInteger k = BigInteger.ONE;
         FactorPair pair = null;
         while(pair == null && !done) {
             long startTime = System.currentTimeMillis();
@@ -52,11 +50,11 @@ public class QuadraticSieve {
             int p = 0;
             while(solutions < L) {
                 BigInteger potentialFactor = generatePotentialFactor(values, j, k, solutions);
-                if (k.compareTo(j) > 0) {
-                    j = j.add(BigInteger.ONE);
-                } else {
-                    k = k.add(t);
+                if (BigInteger.valueOf(L).compareTo(j) == 0) {
                     j = BigInteger.ONE;
+                    k = k.add(BigInteger.ONE);
+                } else {
+                    j = j.add(BigInteger.ONE);
                 }
                 //System.out.println("k: " + k + " j: " + j);
                 //long nstart = System.nanoTime();
@@ -81,7 +79,7 @@ public class QuadraticSieve {
             long middleTime = System.currentTimeMillis();
             System.out.println("Time to create matrix: " + (middleTime - startTime));
             try {
-                var solver = new MatrixSolver(factorMatrix, values, N);
+                var solver = new MatrixSolver(factorMatrix, values, N, F);
                 solver.exportMatrixToFile(factorMatrix);
                 var possibleSolutions = solver.solveFile();
                 pair = solver.findFactorPairFromSolution(possibleSolutions);
