@@ -11,7 +11,6 @@ public class QuadraticSieve {
     int L;
     BigInteger B;
     int F;
-    volatile boolean done = false;
     List<BigInteger> primes = new ArrayList<>();
 
     public QuadraticSieve(String filepath, BigInteger N) {
@@ -44,37 +43,23 @@ public class QuadraticSieve {
         BigInteger j = BigInteger.ONE;
         BigInteger k = BigInteger.ONE;
         FactorPair pair = null;
-        while(pair == null && !done) {
+        BigInteger factor = BigInteger.valueOf(L).sqrt().subtract(BigInteger.ONE);
+        while(pair == null) {
             long startTime = System.currentTimeMillis();
             int solutions = 0;
-            int p = 0;
             while(solutions < L) {
                 BigInteger potentialFactor = generatePotentialFactor(values, j, k, solutions);
-                if (BigInteger.valueOf(L).compareTo(j) == 0) {
+                if (factor.compareTo(j) == 0) {
                     j = BigInteger.ONE;
                     k = k.add(BigInteger.ONE);
                 } else {
                     j = j.add(BigInteger.ONE);
                 }
-                //System.out.println("k: " + k + " j: " + j);
-                //long nstart = System.nanoTime();
                 boolean f = bSmoothFactors(testFactor, potentialFactor);
-                //long nmiddle = System.nanoTime();
-                //System.out.println("Time to check number: " + (nmiddle - nstart));
-                //System.out.println(Arrays.toString(testFactor));
-
                 if (f && validSolution(testFactor, factorMatrix, solutions)) {
-                    //System.out.println("Rejected numbers: " + p);
-                    p = 0;
-                    for(int i = 0; i < F; i++) {
-                        factorMatrix[solutions][i] = testFactor[i];
-                    }
+                    if (F >= 0) System.arraycopy(testFactor, 0, factorMatrix[solutions], 0, F);
                     solutions++;
-                } else {
-                    p++;
                 }
-                //long nend = System.nanoTime();
-                //System.out.println("Time to validate and insert row: " + (nend - nmiddle));
             }
             long middleTime = System.currentTimeMillis();
             System.out.println("Time to create matrix: " + (middleTime - startTime));
@@ -86,12 +71,9 @@ public class QuadraticSieve {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            //pair = new MatrixSolver(factorMatrix, values, N).solve();
             long totalTime = System.currentTimeMillis();
             System.out.println("Time to solve matrix: " + (totalTime - middleTime));
-
         }
-        done = true;
         pair.print();
     }
 

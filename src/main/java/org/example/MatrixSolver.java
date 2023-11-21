@@ -145,10 +145,6 @@ public class MatrixSolver {
         }
     }
 
-
-    /**
-     * Solve the matrix defined in "matrix.txt", returns a list of all solutions
-     */
     public boolean[][] solveFile() throws IOException, InterruptedException {
         clearFile("./src/main/java/org/example/solutions2.txt");
         Runtime.getRuntime().exec("./src/main/java/org/example/a.out ./src/main/java/org/example/matrix.txt ./src/main/java/org/example/solutions2.txt").waitFor();
@@ -170,9 +166,7 @@ public class MatrixSolver {
         int i = 0;
         while (reader.hasNextLine()) {
             try {
-                //System.out.println(i);
                 String line = reader.nextLine();
-                //System.out.println("line: " + line);
                 String[] rowValues = line.trim().split(" ");
                 for (int j = 0; j < rowValues.length; j++) {
                     solutionMatrix[i][j] = rowValues[j].equals("1");
@@ -190,24 +184,14 @@ public class MatrixSolver {
 
     }
 
-    /**
-     * Reads the solution from the solutions2.txt and then clears it
-     * @return the resulting matrix
-     */
     private boolean[][] readSolutionFromFile() {
         var filePath = "./src/main/java/org/example/solutions2.txt";
         try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
-            // Read the number of rows from the first line
             int numRows = Integer.parseInt(br.readLine().trim());
-
-            // Initialize the boolean matrix
             boolean[][] matrix = new boolean[numRows][];
-
-            // Read each row and convert it to a boolean array
             for (int i = 0; i < numRows; i++) {
                 try {
                     String line = br.readLine();
-                    //System.out.println("line: " + line);
                     String[] rowValues = line.trim().split(" ");
                     matrix[i] = new boolean[rowValues.length];
                     for (int j = 0; j < rowValues.length; j++) {
@@ -226,19 +210,16 @@ public class MatrixSolver {
         }
     }
 
-    /**
-     * Clear a file
-     * @param filePath the path to the file
-     */
     private void clearFile(String filePath) {
         try (FileWriter writer = new FileWriter(filePath)) {
-            writer.write(""); // Writing an empty string to clear the file
+            writer.write("");
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
     public FactorPair findFactorPairFromSolution(boolean[][] possibleSolutions) {
+        int i = 0;
         for (boolean[] possibleSolution : possibleSolutions) {
             BigInteger lhs = BigInteger.ONE;
             BigInteger rhs = BigInteger.ONE;
@@ -247,6 +228,10 @@ public class MatrixSolver {
                     lhs = lhs.multiply(values[j]);
                     rhs = rhs.multiply(values[j].multiply(values[j]).mod(N));
                 }
+            }
+            if (i == 0) {
+                System.out.println(lhs.mod(N) + " " + rhs.mod(N));
+                i++;
             }
             FactorPair factor = getFactorPair(lhs, rhs);
             if (factor != null) return factor;
