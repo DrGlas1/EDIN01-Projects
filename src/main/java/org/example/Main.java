@@ -5,7 +5,7 @@ import java.math.BigInteger;
 public class Main {
     public static void main(String[] args) {
         QuadraticSieve sieve = new QuadraticSieve("./src/main/java/org/example/primes.txt", new BigInteger("392742364277"));
-        sieve.factor(0, 5);
+        sieve.factor();
     }
 
     static void printRow(boolean[] row) {
