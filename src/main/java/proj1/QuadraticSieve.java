@@ -21,8 +21,8 @@ public class QuadraticSieve {
 
     public QuadraticSieve(String filepath, BigInteger N) {
         this.N = N;
-        this.L = 2000;
-        int b = 1900;
+        this.L = 600;
+        int b = 3000;
         try (BufferedReader br = new BufferedReader(new FileReader(filepath))) {
             String line;
             while ((line = br.readLine()) != null) {
