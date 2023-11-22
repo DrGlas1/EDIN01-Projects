@@ -21,8 +21,8 @@ public class QuadraticSieve {
 
     public QuadraticSieve(String filepath, BigInteger N) {
         this.N = N;
-        this.L = 1024;
-        int b = 1014;
+        this.L = 2000;
+        int b = 1900;
         try (BufferedReader br = new BufferedReader(new FileReader(filepath))) {
             String line;
             while ((line = br.readLine()) != null) {
@@ -186,9 +186,8 @@ public class QuadraticSieve {
                 lhs = lhs.mod(N);
                 rhs = rhs.sqrt().mod(N);
                 BigInteger factor = gcd(lhs.subtract(rhs),N);
-                if (factor.intValue() != 1) {
-                    return new FactorPair(factor, N.divide(factor));
-                }
+                FactorPair factor1 = retNonTrivialFactor(factor);
+                if (factor1 != null) return factor1;
                 indexOfSolutions.add(i);
             }
         }
@@ -206,10 +205,21 @@ public class QuadraticSieve {
                 lhs = lhs.mod(N);
                 rhs = rhs.sqrt().mod(N);
                 BigInteger factor = gcd(lhs.subtract(rhs),N);
-                if (factor.intValue() != 1) {
-                    return new FactorPair(factor, N.divide(factor));
-                }
+                FactorPair factor1 = retNonTrivialFactor(factor);
+                if (factor1 != null) return factor1;
             }
+        }
+        return null;
+    }
+
+    /**
+     * Returns the factor if it is non-trivial, i.e. not equal to 1 or N
+     * @param factor The factor to check
+     * @return factor if it isn't trivial, else null
+     */
+    private FactorPair retNonTrivialFactor(BigInteger factor) {
+        if (factor.compareTo(BigInteger.ONE) != 0 && factor.compareTo(N) != 0) {
+            return new FactorPair(factor, N.divide(factor));
         }
         return null;
     }
