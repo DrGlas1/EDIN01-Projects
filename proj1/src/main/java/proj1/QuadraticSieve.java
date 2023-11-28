@@ -21,11 +21,12 @@ public class QuadraticSieve {
 
     public QuadraticSieve(String filepath, BigInteger N) {
         this.N = N;
-        this.L = 300;
-        int b = 1500;
+        this.L = 600;
+        int b = 4000;
         try (BufferedReader br = new BufferedReader(new FileReader(filepath))) {
             String line;
             while ((line = br.readLine()) != null) {
+                /* Assumes primes are separated by a comma */
                 String[] primeStrings = line.split(",");
                 for (String primeStr : primeStrings){
                     var prime = new BigInteger(primeStr);
@@ -171,13 +172,12 @@ public class QuadraticSieve {
      * @return FactorPair containing two factors of N if found, else null
      */
     private FactorPair testSolutions() {
-        List<Integer> indexOfSolutions = new ArrayList<>();
         for(int i = 0; i < L; i++) {
             if (validateRow(matrix[i])) {
                 /* Test a linearly dependant row */
                 BigInteger lhs = BigInteger.valueOf(1);
                 BigInteger rhs = BigInteger.valueOf(1);
-                for(int j = 0; j < L; j++) {
+                for (int j = 0; j < L; j++) {
                     if (records[i][j]) {
                         lhs = lhs.multiply(values[j]);
                         rhs = rhs.multiply(values[j].multiply(values[j]).mod(N));
@@ -185,26 +185,7 @@ public class QuadraticSieve {
                 }
                 lhs = lhs.mod(N);
                 rhs = rhs.sqrt().mod(N);
-                BigInteger factor = gcd(lhs.subtract(rhs),N);
-                FactorPair factor1 = retNonTrivialFactor(factor);
-                if (factor1 != null) return factor1;
-                indexOfSolutions.add(i);
-            }
-        }
-        /* Test linear combinations of linearly dependant rows */
-        for(int i = 0; i < indexOfSolutions.size(); i++) {
-            for(int j = i + 1; j < indexOfSolutions.size(); j++) {
-                BigInteger lhs = BigInteger.valueOf(1);
-                BigInteger rhs = BigInteger.valueOf(1);
-                for(int k = 0; k < L; k++) {
-                    if (records[indexOfSolutions.get(i)][k] ^ records[indexOfSolutions.get(j)][k]) {
-                        lhs = lhs.multiply(values[k]);
-                        rhs = rhs.multiply(values[k].multiply(values[k]).mod(N));
-                    }
-                }
-                lhs = lhs.mod(N);
-                rhs = rhs.sqrt().mod(N);
-                BigInteger factor = gcd(lhs.subtract(rhs),N);
+                BigInteger factor = gcd(lhs.subtract(rhs), N);
                 FactorPair factor1 = retNonTrivialFactor(factor);
                 if (factor1 != null) return factor1;
             }
